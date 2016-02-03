@@ -20,14 +20,14 @@ classdef Reader4 < handle
     
     methods
         
-        function self = Reader4(path)
+        function self = Reader4(path, workaround)
             % r = reso.reader('/fullpath/files.tif')
             % If path.ext is not found, look for 'path_001.ext'. If found,
             % then loads all files matching pattern 'path_%03u.ext';
             
             self.find_files(path)
             self.load_header
-            self.init_stacks
+            self.init_stacks(workaround)
         end
         
         function n = get.nslices(self)
@@ -117,10 +117,21 @@ classdef Reader4 < handle
             end
         end
         
-        function init_stacks(self)
-            self.stacks = arrayfun(@(ifile) ...
-                TIFFStack(self.files{ifile}, [], [self.nslices length(self.channels)]), ...
-                1:length(self.files), 'uni', false);
+        function init_stacks(self, workaround)
+            %need for workaround:
+            %since scans may not be run to completion, header field for 
+            %number of slices, and the actual number of slices acquired do
+            %not tally leading to errors with TIFFStack usage.
+            %Introducing this function to workaround
+            if (workaround)
+                self.stacks = arrayfun(@(ifile) ...
+                    TIFFStack(self.files{ifile}, [], [((numel(imfinfo(self.files{1})))/length(self.channels)) length(self.channels)]), ...
+                    1:length(self.files), 'uni', false);
+            else
+                self.stacks = arrayfun(@(ifile) ...
+                    TIFFStack(self.files{ifile}, [], [self.nslices length(self.channels)]), ...
+                    1:length(self.files), 'uni', false);
+            end
         end
         
     end
