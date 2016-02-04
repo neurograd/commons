@@ -44,7 +44,7 @@ classdef Reader4 < handle
         
         function check_num_slices(self)
             number_of_elements = numel(imfinfo(self.files{1}));
-            actual_num_slices = number_of_elements/((length(self.channels))*self.nframes);
+            actual_num_slices = number_of_elements/(length(self.channels));
             if actual_num_slices ~= self.nslices
                 self.header.stackNumSlices = actual_num_slices;
             end
