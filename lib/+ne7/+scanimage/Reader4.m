@@ -20,14 +20,14 @@ classdef Reader4 < handle
     
     methods
         
-        function self = Reader4(path, workaround)
+        function self = Reader4(path)
             % r = reso.reader('/fullpath/files.tif')
             % If path.ext is not found, look for 'path_001.ext'. If found,
             % then loads all files matching pattern 'path_%03u.ext';
-            
             self.find_files(path)
             self.load_header
-            self.init_stacks(workaround)
+            self.check_num_slices()
+            self.init_stacks(false)
         end
         
         function n = get.nslices(self)
@@ -42,6 +42,13 @@ classdef Reader4 < handle
             n = sum(cellfun(@(s) size(s, 5), self.stacks));
         end
         
+        function check_num_slices(self)
+            number_of_elements = numel(imfinfo(self.files{1}));
+            actual_num_slices = number_of_elements/((length(self.channels))*self.nframes);
+            if actual_num_slices ~= self.nslices
+                self.header.stackNumSlices = actual_num_slices;
+            end
+        end
         function sz = size(self)
             sz = size(self.stacks{1});
             sz(5) = self.nframes;
